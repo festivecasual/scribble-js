@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Drawbot</title>
+    <link rel="stylesheet" href="node_modules/bulma/css/bulma.min.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+  </head>
+  <body>
+  <section class="section">
+    <div class="columns">
+      <div class="column">
+        <h1 class="title">Drawbot</h1>
+      </div>
+      <div class="column">
+        <div class="file is-boxed is-medium" id="source">
+          <label class="file-label">
+            <input class="file-input" type="file" name="source-file" id="source-file">
+            <span class="file-cta">
+              <span class="file-icon"><i class="fas fa-upload"></i></span>
+              <span class="file-label">Choose a file or drag a file here.</span>
+            </span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="section">
+    <div class="container">
+      <canvas id="working-image" width="400" height="400"></canvas>
+    </div>
+  </section>
+
+  <script src="point.js"></script>
+  <script src="scribble.js"></script>
+  <script>
+    function handleDragOver(evt) {
+      evt.stopPropagation();
+      evt.preventDefault();
+      evt.dataTransfer.dropEffect = 'copy';
+      source.classList.add('is-dark');
+    }
+
+    function handleDragLeave(evt) {
+      evt.stopPropagation();
+      evt.preventDefault();
+      source.classList.remove('is-dark');
+    }
+
+    function handleDrop(evt) {
+      evt.stopPropagation();
+      evt.preventDefault();
+
+      source.classList.remove('is-dark');
+
+      files = evt.dataTransfer.files;
+
+      if (files.length > 0) {
+        processFile(files[0]);
+      }
+    }
+
+    function handleFileSelect(evt) {
+      if (fileBox.files.length > 0) {
+        processFile(fileBox.files[0]);
+      }
+    }
+
+    function processFile(f) {
+      scribble = new Scribble(cvs, f);
+    }
+
+    var source = document.getElementById('source');
+    source.addEventListener('dragover', handleDragOver, false);
+    source.addEventListener('dragleave', handleDragLeave, false);
+    source.addEventListener('drop', handleDrop, false);
+
+    var fileBox = document.getElementById('source-file');
+    fileBox.addEventListener('change', handleFileSelect);
+
+    var cvs = document.getElementById('working-image');
+  </script>
+  </body>
+</html>

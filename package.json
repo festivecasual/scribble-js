@@ -1,0 +1,15 @@
+{
+  "name": "scribble",
+  "version": "1.0.0",
+  "description": "Convert images to drawable lineart",
+  "main": "scribble.js",
+  "dependencies": {
+    "bulma": "^0.7.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Brandon McCalip",
+  "license": "GPL-3.0-or-later"
+}
