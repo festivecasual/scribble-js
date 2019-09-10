@@ -61,6 +61,29 @@
       }
     }
 
+    function handleKey(evt) {
+      if (!scribble) {
+        return;
+      }
+
+      switch (evt.code) {
+        case 'Comma':
+          draw_options.cutoff++;
+          break;
+        case 'Period':
+          draw_options.cutoff = Math.max(draw_options.cutoff - 1, 0);
+          break;
+        case 'BracketLeft':
+          draw_options.clip = Math.min(draw_options.clip + 1, 100);
+          break;
+        case 'BracketRight':
+          draw_options.clip = Math.max(draw_options.clip - 1, 0);
+          break;
+      }
+
+      scribble.drawLines(draw_options);
+    }
+
     function handleFileSelect(evt) {
       if (fileBox.files.length > 0) {
         processFile(fileBox.files[0]);
@@ -68,6 +91,8 @@
     }
 
     function processFile(f) {
+      draw_options = Object();
+      Object.assign(draw_options, Scribble._draw_options);
       scribble = new Scribble(cvs, f);
     }
 
@@ -78,6 +103,12 @@
 
     var fileBox = document.getElementById('source-file');
     fileBox.addEventListener('change', handleFileSelect);
+
+    var draw_options = Object();
+    Object.assign(draw_options, Scribble._draw_options);
+    document.addEventListener('keydown', handleKey);
+
+    var scribble;
 
     var cvs = document.getElementById('working-image');
   </script>

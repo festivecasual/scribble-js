@@ -147,17 +147,28 @@ class Scribble {
         }
     }
 
-    drawLines(cutoff=0) {
+    drawLines(options=Scribble._draw_options) {
         this.context.fillStyle = 'white';
         this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
         this.context.lineWidth = 1 / 16;
         this.context.strokeStyle = 'blue';
 
-        for (let p = 0; p < this.paths.length - cutoff; p++) {
+        for (let p = 0; p < this.paths.length - options.cutoff; p++) {
             this.context.stroke(this.paths[p]);
         }
+
+        var clip = new Path2D();
+        this.context.lineWidth = 1;
+        this.context.strokeStyle = 'black';
+        clip.rect(options.clip, options.clip, this.canvas.width - 2 * options.clip, this.canvas.height - 2 * options.clip);
+        this.context.stroke(clip);
     }
 }
+
+Scribble._draw_options = {
+    cutoff: 0,
+    clip: 5
+};
 
 
 function bound(num, low, high) {
