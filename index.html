@@ -79,8 +79,13 @@
         case 'BracketRight':
           draw_options.clip = Math.max(draw_options.clip - 1, 0);
           break;
+        case 'KeyR':
+          Object.assign(draw_options, Scribble._draw_options);
+          scribble.rotate();
+          scribble.prepare();
+          scribble.process();
+          break;
       }
-
       scribble.drawLines(draw_options);
     }
 

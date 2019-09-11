@@ -9,32 +9,38 @@ class Scribble {
         
         var reader = new FileReader();
         reader.onload = e => {
-            var img = new Image();
-            img.onload = () => {
-                if (img.naturalWidth > img.naturalHeight) {
+            this.img = new Image();
+            this.img.onload = () => {
+                if (this.img.naturalWidth > this.img.naturalHeight) {
                     this.canvas.width = 400;
-                    this.canvas.height = Math.floor(this.canvas.width * img.naturalHeight / img.naturalWidth);
+                    this.canvas.height = Math.floor(this.canvas.width * this.img.naturalHeight / this.img.naturalWidth);
                 } else {
                     this.canvas.height = 400;
-                    this.canvas.width = Math.floor(this.canvas.height * img.naturalWidth / img.naturalHeight);
+                    this.canvas.width = Math.floor(this.canvas.height * this.img.naturalWidth / this.img.naturalHeight);
                 }
-                this.context.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
-                
-                this.imgData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
-                this.lines = [];
-                this.paths = [];
-                
+
+                this.reset();
                 this.prepare();
                 this.process();
             };
-            img.src = e.target.result;
+            this.img.src = e.target.result;
         };
         reader.readAsDataURL(f);
     }
-    
+
+    reset() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        this.context.drawImage(this.img, 0, 0, this.canvas.width, this.canvas.height);
+        this.imgData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+
+        this.lines = [];
+        this.paths = [];
+    }
+
     async prepare() {
         this.grayscale();
-        this.refresh();
+        await this.refresh();
     }
     
     refresh() {
@@ -50,6 +56,23 @@ class Scribble {
         }
     }
     
+    rotate() {
+        this.reset();
+
+        var [priorWidth, priorHeight] = [this.canvas.width, this.canvas.height];
+        this.canvas.width = priorHeight;
+        this.canvas.height = priorWidth;
+
+        this.context.save();
+        this.context.translate(this.canvas.width / 2, this.canvas.height / 2);
+        this.context.rotate(Math.PI / 2);
+        this.context.drawImage(this.img, - priorWidth / 2, - priorHeight / 2, priorWidth, priorHeight);
+        this.img.src = this.canvas.toDataURL("image/png");
+        this.context.restore();
+
+        this.reset();
+    }
+
     async process(stroke_length=20) {
         var start = this.darkestSamplePoint();
         var finish;
@@ -148,8 +171,7 @@ class Scribble {
     }
 
     drawLines(options=Scribble._draw_options) {
-        this.context.fillStyle = 'white';
-        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.context.lineWidth = 1 / 16;
         this.context.strokeStyle = 'blue';
 
