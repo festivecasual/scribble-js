@@ -6,116 +6,57 @@
     <title>Drawbot</title>
     <link rel="stylesheet" href="node_modules/bulma/css/bulma.min.css">
     <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <style>
+      p {
+        margin-top: 2em;
+      }
+
+      input[type=range] {
+        width: 100%;
+      }
+    </style>
   </head>
   <body>
-  <section class="section">
-    <div class="columns">
-      <div class="column">
-        <h1 class="title">Drawbot</h1>
-      </div>
-      <div class="column">
-        <div class="file is-boxed is-medium" id="source">
-          <label class="file-label">
-            <input class="file-input" type="file" name="source-file" id="source-file">
-            <span class="file-cta">
-              <span class="file-icon"><i class="fas fa-upload"></i></span>
-              <span class="file-label">Choose a file or drag a file here.</span>
-            </span>
-          </label>
+    <div id="app">
+      <div class="navbar is-dark" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand"><a class="navbar-item"><img src="logo.png" width="150" height="15"></a></div>
+        <div class="navbar-menu">
+          <div class="navbar-start">
+            <a class="navbar-item is-active">Design</a>
+            <a class="navbar-item">Control</a>
+          </div>
+          <div class="navbar-end"><a class="navbar-item has-background-success">
+            Status:&nbsp;<strong>Ready</strong>
+          </a></div>
         </div>
       </div>
+      <section id="design" class="columns section">
+        <div class="column is-4">
+          <canvas id="working-image" width="400" height="400" class="has-background-grey-lighter"></canvas>
+        </div>
+        <div class="column is-4">
+          <div class="file is-boxed is-medium" id="source" v-if="clean"><label class="file-label">
+            <input class="file-input" type="file" id="file-input" v-on:change="fileChanged()">
+            <span class="file-cta">
+              <span class="file-icon"><i class="fas fa-upload"></i></span>
+              <span class="file-label">Choose a file...</span>
+            </span>
+          </label></div>
+          <div v-if="loading">
+            <a class="button is-loading is-primary">Loading...</a>
+          </div>
+          <div v-if="ready">
+            <p>Cutoff: <input step="1" min="0" :max="maxCutoff" v-model="cutoff" type="range"></p>
+            <p>Clip: <input step="1" min="0" max="20" v-model="clip" type="range"></p>
+            <p><a class="button" v-on:click="rotate()"><i class="fas fa-sync-alt"></i>&nbsp;Rotate Image</a></p>
+            <p><a class="button is-dark" v-on:click="startOver()"><i class="fas fa-step-backward"></i>&nbsp;Start Over</a></p>
+          </div>
+      </section>
     </div>
-  </section>
-  <section class="section">
-    <div class="container">
-      <canvas id="working-image" width="400" height="400"></canvas>
-    </div>
-  </section>
 
-  <script src="point.js"></script>
-  <script src="scribble.js"></script>
-  <script>
-    function handleDragOver(evt) {
-      evt.stopPropagation();
-      evt.preventDefault();
-      evt.dataTransfer.dropEffect = 'copy';
-      source.classList.add('is-dark');
-    }
-
-    function handleDragLeave(evt) {
-      evt.stopPropagation();
-      evt.preventDefault();
-      source.classList.remove('is-dark');
-    }
-
-    function handleDrop(evt) {
-      evt.stopPropagation();
-      evt.preventDefault();
-
-      source.classList.remove('is-dark');
-
-      files = evt.dataTransfer.files;
-
-      if (files.length > 0) {
-        processFile(files[0]);
-      }
-    }
-
-    function handleKey(evt) {
-      if (!scribble) {
-        return;
-      }
-
-      switch (evt.code) {
-        case 'Comma':
-          draw_options.cutoff++;
-          break;
-        case 'Period':
-          draw_options.cutoff = Math.max(draw_options.cutoff - 1, 0);
-          break;
-        case 'BracketLeft':
-          draw_options.clip = Math.min(draw_options.clip + 1, 100);
-          break;
-        case 'BracketRight':
-          draw_options.clip = Math.max(draw_options.clip - 1, 0);
-          break;
-        case 'KeyR':
-          Object.assign(draw_options, Scribble._draw_options);
-          scribble.rotate();
-          scribble.prepare();
-          scribble.process();
-          break;
-      }
-      scribble.drawLines(draw_options);
-    }
-
-    function handleFileSelect(evt) {
-      if (fileBox.files.length > 0) {
-        processFile(fileBox.files[0]);
-      }
-    }
-
-    function processFile(f) {
-      draw_options = Object();
-      Object.assign(draw_options, Scribble._draw_options);
-      scribble = new Scribble(cvs, f);
-    }
-
-    var source = document.getElementById('source');
-    source.addEventListener('dragover', handleDragOver, false);
-    source.addEventListener('dragleave', handleDragLeave, false);
-    source.addEventListener('drop', handleDrop, false);
-
-    var fileBox = document.getElementById('source-file');
-    fileBox.addEventListener('change', handleFileSelect);
-
-    var draw_options = Object();
-    Object.assign(draw_options, Scribble._draw_options);
-    document.addEventListener('keydown', handleKey);
-
-    var scribble;
-
-    var cvs = document.getElementById('working-image');
-  </script>
+    <script src="point.js"></script>
+    <script src="scribble.js"></script>
+    <script src="main.js"></script>
   </body>
 </html>

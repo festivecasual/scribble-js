@@ -3,33 +3,40 @@
 
 
 class Scribble {
-    constructor(cvs, f) {
+    constructor(cvs) {
         this.canvas = cvs;
         this.context = this.canvas.getContext('2d');
-        
-        var reader = new FileReader();
-        reader.onload = e => {
-            this.img = new Image();
-            this.img.onload = () => {
-                if (this.img.naturalWidth > this.img.naturalHeight) {
-                    this.canvas.width = 400;
-                    this.canvas.height = Math.floor(this.canvas.width * this.img.naturalHeight / this.img.naturalWidth);
-                } else {
-                    this.canvas.height = 400;
-                    this.canvas.width = Math.floor(this.canvas.height * this.img.naturalWidth / this.img.naturalHeight);
-                }
+    }
 
-                this.reset();
-                this.prepare();
-                this.process();
+    async load(f) {
+        var reader = new FileReader();
+        return new Promise(resolve => {
+            reader.onload = e => {
+                this.img = new Image();
+                this.img.onload = () => {
+                    if (this.img.naturalWidth > this.img.naturalHeight) {
+                        this.canvas.width = 400;
+                        this.canvas.height = Math.floor(this.canvas.width * this.img.naturalHeight / this.img.naturalWidth);
+                    } else {
+                        this.canvas.height = 400;
+                        this.canvas.width = Math.floor(this.canvas.height * this.img.naturalWidth / this.img.naturalHeight);
+                    }
+                    this.reset();
+                    this.grayscale();
+                    resolve();
+                };
+                this.img.src = e.target.result;
             };
-            this.img.src = e.target.result;
-        };
-        reader.readAsDataURL(f);
+            reader.readAsDataURL(f);
+        });
+    }
+
+    clear() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
     reset() {
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.clear();
 
         this.context.drawImage(this.img, 0, 0, this.canvas.width, this.canvas.height);
         this.imgData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
@@ -38,11 +45,6 @@ class Scribble {
         this.paths = [];
     }
 
-    async prepare() {
-        this.grayscale();
-        await this.refresh();
-    }
-    
     refresh() {
         this.context.putImageData(this.imgData, 0, 0);
         return new Promise(resolve => setTimeout(resolve, 0));
@@ -73,7 +75,7 @@ class Scribble {
         this.reset();
     }
 
-    async process(stroke_length=20) {
+    async process(clip, cutoff, stroke=20) {
         var start = this.darkestSamplePoint();
         var finish;
 
@@ -82,8 +84,8 @@ class Scribble {
             for (let i = 0; i < 100; i++) {
                 let darkest_option = 256;
                 for (let phi = Math.PI * Math.random(); phi < 3 * Math.PI; phi += Math.PI / 3) {
-                    let x = bound(start.x + Math.floor(stroke_length * Math.cos(phi)), 0, this.canvas.width - 1);
-                    let y = bound(start.y + Math.floor(stroke_length * Math.sin(phi)), 0, this.canvas.height - 1);
+                    let x = bound(start.x + Math.floor(stroke * Math.cos(phi)), 0, this.canvas.width - 1);
+                    let y = bound(start.y + Math.floor(stroke * Math.sin(phi)), 0, this.canvas.height - 1);
                     let test_sum = 0, test_count = 0;
                     for (let pt of start.bresenhamTo(new Point(x, y))) {
                         test_count++;
@@ -106,7 +108,7 @@ class Scribble {
         }
 
         this.buildPaths();
-        this.drawLines();
+        this.drawLines(clip, cutoff);
     }
 
     darkestSamplePoint(step=10) {
@@ -170,28 +172,22 @@ class Scribble {
         }
     }
 
-    drawLines(options=Scribble._draw_options) {
+    drawLines(clip, cutoff) {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.context.lineWidth = 1 / 16;
         this.context.strokeStyle = 'blue';
 
-        for (let p = 0; p < this.paths.length - options.cutoff; p++) {
+        for (let p = 0; p < this.paths.length - cutoff; p++) {
             this.context.stroke(this.paths[p]);
         }
 
-        var clip = new Path2D();
+        var clipbox = new Path2D();
         this.context.lineWidth = 1;
         this.context.strokeStyle = 'black';
-        clip.rect(options.clip, options.clip, this.canvas.width - 2 * options.clip, this.canvas.height - 2 * options.clip);
-        this.context.stroke(clip);
+        clipbox.rect(clip, clip, this.canvas.width - 2 * clip, this.canvas.height - 2 * clip);
+        this.context.stroke(clipbox);
     }
 }
-
-Scribble._draw_options = {
-    cutoff: 0,
-    clip: 5
-};
-
 
 function bound(num, low, high) {
     return Math.min(Math.max(num, low), high);
