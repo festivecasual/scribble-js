@@ -76,7 +76,22 @@ var app = new Vue({
                 this.status = response.data.status;
                 this.completion = response.data.completion;
             });
-        }
+        },
+        sendCommands(cmds) {
+            axios.post('/api/command', cmds).then(function(){
+                console.log('Sent commands:');
+                console.log(commands);
+            });
+        },
+        moveBelts(L, R) {
+            this.sendCommands([`G0 L${L} R${R}`]);
+        },
+        findCenter() {
+            this.sendCommands(['G28']);
+        },
+        goHome() {
+            this.sendCommands(['G0 X0 Y0']);
+        },
     },
     watch: {
         clip: function(val) {

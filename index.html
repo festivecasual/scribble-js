@@ -73,16 +73,20 @@
         <section class="modal-card-body">
           <table class="table is-fullwidth"><tbody>
             <tr>
+              <td><p>
+                  Left Belt:<br />
+                  <a class="button" @click.prevent="moveBelts(-10, 0);"><i class="fas fa-undo-alt"></i>&nbsp;Infeed</a>
+                  <a class="button" @click.prevent="moveBelts(10, 0);"><i class="fas fa-redo-alt"></i>&nbsp;Outfeed</a>
+              </p></td>
+              <td><p>
+                Right Belt:<br />
+                <a class="button" @click.prevent="moveBelts(0, 10);"><i class="fas fa-undo-alt"></i>&nbsp;Outfeed</a>
+                <a class="button" @click.prevent="moveBelts(0, -10);"><i class="fas fa-redo-alt"></i>&nbsp;Infeed</a></p>
+              </p></td>
               <td>
-                <p>Left Belt:<br /><a class="button"><i class="fas fa-undo-alt"></i>&nbsp;Infeed</a> <a class="button"><i class="fas fa-redo-alt"></i>&nbsp;Outfeed</a></p>
-              </td>
-              <td>
-                <p>Right Belt:<br /><a class="button"><i class="fas fa-undo-alt"></i>&nbsp;Outfeed</a> <a class="button"><i class="fas fa-redo-alt"></i>&nbsp;Infeed</a></p>
-              </td>
-              <td>
-                <p><a class="button is-dark"><i class="fas fa-crosshairs"></i>&nbsp;Center</a></p>
+                <p><a class="button is-dark" @click.prevent="findCenter();"><i class="fas fa-crosshairs"></i>&nbsp;Center</a></p>
                 <p>&nbsp;</p>
-                <p><a class="button is-light"><i class="fas fa-home"></i>&nbsp;Home</a></p>
+                <p><a class="button is-light" @click.prevent="goHome();"><i class="fas fa-home"></i>&nbsp;Home</a></p>
               </td>
             </tr>
           </tbody></table>
