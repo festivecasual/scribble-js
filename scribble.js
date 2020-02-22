@@ -107,7 +107,7 @@ class Scribble {
             await this.refresh();
         }
 
-        this.buildPaths();
+        this.buildPaths(clip);
         this.drawLines(clip, cutoff);
     }
 
@@ -160,15 +160,36 @@ class Scribble {
         return mean_total / mean_count;
     }
 
-    buildPaths() {
+    checkWithinClipRegion(pt, clip) {
+        if (pt.x < clip || pt.x > (this.canvas.width - clip)) {
+            return false;
+        }
+        if (pt.y < clip || pt.y > (this.canvas.height - clip)) {
+            return false;
+        }
+        return true;
+    }
+
+    buildPaths(clip) {
+        this.paths = [];
         for (let line of this.lines) {
-            let path = new Path2D();
-            let start = line[0];
-            path.moveTo(start.x, start.y);
-            for (let i = 1; i < line.length; i++) {
-                path.lineTo(line[i].x, line[i].y);
+            if (this.checkWithinClipRegion(line[0], clip)) {
+                let path = new Path2D();
+                let start = line[0];
+                let segments = 0;
+                path.moveTo(start.x, start.y);
+                for (let i = 1; i < line.length; i++) {
+                    if (this.checkWithinClipRegion(line[i], clip)) {
+                        path.lineTo(line[i].x, line[i].y);
+                        segments++;
+                    } else {
+                        break;
+                    }
+                }
+                if (segments > 0) {
+                    this.paths.push(path);
+                }
             }
-            this.paths.push(path);
         }
     }
 

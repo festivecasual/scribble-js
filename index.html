@@ -6,9 +6,10 @@
     <title>Drawbot</title>
     <link rel="stylesheet" href="node_modules/bulma/css/bulma.min.css">
     <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="node_modules/vue/dist/vue.min.js"></script>
+    <script src="node_modules/axios/dist/axios.min.js"></script>
     <style>
-      p {
+      #design p {
         margin-top: 2em;
       }
 
@@ -23,21 +24,18 @@
         <div class="navbar-brand"><a class="navbar-item"><img src="logo.png" width="150" height="15"></a></div>
         <div class="navbar-menu">
           <div class="navbar-start">
-            <a class="navbar-item is-active">Design</a>
-            <a class="navbar-item">Control</a>
+            <a class="navbar-item is-active" href="#">Design</a>
+            <a class="navbar-item" @click.prevent="control = true;">Control</a>
           </div>
           <div class="navbar-end"><a class="navbar-item has-background-success">
-            Status:&nbsp;<strong>Ready</strong>
+            Drawbot Status:&nbsp;<strong>Ready</strong>
           </a></div>
         </div>
       </div>
       <section id="design" class="columns section">
-        <div class="column is-4">
-          <canvas id="working-image" width="400" height="400" class="has-background-grey-lighter"></canvas>
-        </div>
-        <div class="column is-4">
+        <div class="column">
           <div class="file is-boxed is-medium" id="source" v-if="clean"><label class="file-label">
-            <input class="file-input" type="file" id="file-input" v-on:change="fileChanged()">
+            <input class="file-input" type="file" id="file-input" @change="fileChanged()">
             <span class="file-cta">
               <span class="file-icon"><i class="fas fa-upload"></i></span>
               <span class="file-label">Choose a file...</span>
@@ -49,10 +47,49 @@
           <div v-if="ready">
             <p>Cutoff: <input step="1" min="0" :max="maxCutoff" v-model="cutoff" type="range"></p>
             <p>Clip: <input step="1" min="0" max="20" v-model="clip" type="range"></p>
-            <p><a class="button" v-on:click="rotate()"><i class="fas fa-sync-alt"></i>&nbsp;Rotate Image</a></p>
-            <p><a class="button is-dark" v-on:click="startOver()"><i class="fas fa-step-backward"></i>&nbsp;Start Over</a></p>
+            <p>
+              <a class="button" @click="rotate()"><i class="fas fa-sync-alt"></i>&nbsp;Rotate Image</a>
+              <a class="button is-dark" @click="startOver()"><i class="fas fa-step-backward"></i>&nbsp;Start Over</a>
+            </p>
+            <p>Scale: <input step="5" min="20" max="90" v-model="scale" type="range"></p>
+            <p>Printed Size: {{ width() }}mm ({{ Math.floor(this.width() / 2.54) / 10 }}") by {{ height() }}mm ({{ Math.floor(this.height() / 2.54) / 10 }}") in {{ orientation() }}</p>
+            <p><a class="button is-success" @click="print()"><i class="fas fa-edit"></i>&nbsp;Send to Drawbot</a></p>
           </div>
+        </div>
+        <div class="column is-narrow">
+          <canvas id="working-image" width="400" height="400" class="has-background-grey-lighter"></canvas>
+        </div>
       </section>
+      <div class="modal" v-bind:class="{'is-active': control}">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Manual Control</p>
+          <button class="delete" aria-label="close" @click.prevent="control = false;"></button>
+        </header>
+        <section class="modal-card-body">
+          <table class="table is-fullwidth"><tbody>
+            <tr>
+              <td>
+                <p>Left Belt:<br /><a class="button"><i class="fas fa-undo-alt"></i>&nbsp;Infeed</a> <a class="button"><i class="fas fa-redo-alt"></i>&nbsp;Outfeed</a></p>
+              </td>
+              <td>
+                <p>Right Belt:<br /><a class="button"><i class="fas fa-undo-alt"></i>&nbsp;Outfeed</a> <a class="button"><i class="fas fa-redo-alt"></i>&nbsp;Infeed</a></p>
+              </td>
+              <td>
+                <p><a class="button is-dark"><i class="fas fa-crosshairs"></i>&nbsp;Center</a></p>
+                <p>&nbsp;</p>
+                <p><a class="button is-light"><i class="fas fa-home"></i>&nbsp;Home</a></p>
+              </td>
+            </tr>
+          </tbody></table>
+          <p>
+            <strong><i class="far fa-lightbulb"></i>&nbsp;Tip:</strong><br />
+            Center the bot if it is not responding to commands.  Re-center if you have moved the belts.
+          </p>
+        </section>
+        <footer class="modal-card-foot"></footer>
+      </div>
     </div>
 
     <script src="point.js"></script>
