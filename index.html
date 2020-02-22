@@ -27,8 +27,11 @@
             <a class="navbar-item is-active" href="#">Design</a>
             <a class="navbar-item" @click.prevent="control = true;">Control</a>
           </div>
-          <div class="navbar-end"><a class="navbar-item has-background-success">
-            Drawbot Status:&nbsp;<strong>Ready</strong>
+          <div class="navbar-end"><a class="navbar-item" v-bind:class="['has-background-link', {'has-background-success': status === 'ready'}]">
+            Drawbot Status:&nbsp;
+            <strong v-if="status === 'ready'">Ready</strong>
+            <strong v-if="status === 'busy'">Busy ({{Math.floor(completion * 100)}}%)</strong>
+            <strong v-if="status === 'wait'">Please Wait...</strong>
           </a></div>
         </div>
       </div>

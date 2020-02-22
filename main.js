@@ -8,6 +8,8 @@ var app = new Vue({
         scribble: null,
         loading: false,
         control: false,
+        status: 'wait',
+        completion: 0,
     },
     computed: {
         ready: function() {
@@ -15,6 +17,9 @@ var app = new Vue({
         },
         clean: function() {
             return this.scribble === null;
+        },
+        machineReady: function() {
+            return this.status === 'ready';
         },
     },
     methods: {
@@ -68,7 +73,8 @@ var app = new Vue({
         },
         heartbeat() {
             result = axios.get('/api/status').then(response => {
-                console.log(response);
+                this.status = response.data.status;
+                this.completion = response.data.completion;
             });
         }
     },
