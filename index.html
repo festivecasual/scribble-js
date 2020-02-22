@@ -56,7 +56,7 @@
             </p>
             <p>Scale: <input step="5" min="20" max="90" v-model="scale" type="range"></p>
             <p>Printed Size: {{ width() }}mm ({{ Math.floor(this.width() / 2.54) / 10 }}") by {{ height() }}mm ({{ Math.floor(this.height() / 2.54) / 10 }}") in {{ orientation() }}</p>
-            <p><a class="button is-success" @click="print()"><i class="fas fa-edit"></i>&nbsp;Send to Drawbot</a></p>
+            <p><a class="button is-success" @click="startPrint()"><i class="fas fa-edit"></i>&nbsp;Send to Drawbot</a></p>
           </div>
         </div>
         <div class="column is-narrow">
@@ -84,16 +84,11 @@
                 <a class="button" @click.prevent="moveBelts(0, -10);"><i class="fas fa-redo-alt"></i>&nbsp;Infeed</a></p>
               </p></td>
               <td>
+                <p>Calibrate:</p>
                 <p><a class="button is-dark" @click.prevent="findCenter();"><i class="fas fa-crosshairs"></i>&nbsp;Center</a></p>
-                <p>&nbsp;</p>
-                <p><a class="button is-light" @click.prevent="goHome();"><i class="fas fa-home"></i>&nbsp;Home</a></p>
               </td>
             </tr>
           </tbody></table>
-          <p>
-            <strong><i class="far fa-lightbulb"></i>&nbsp;Tip:</strong><br />
-            Center the bot if it is not responding to commands.  Re-center if you have moved the belts.
-          </p>
         </section>
         <footer class="modal-card-foot"></footer>
       </div>

@@ -172,15 +172,21 @@ class Scribble {
 
     buildPaths(clip) {
         this.paths = [];
+        let strokes = [];
         for (let line of this.lines) {
+            let stroke = [];
             if (this.checkWithinClipRegion(line[0], clip)) {
                 let path = new Path2D();
                 let start = line[0];
                 let segments = 0;
+
                 path.moveTo(start.x, start.y);
+                stroke.push(line[0]);
+
                 for (let i = 1; i < line.length; i++) {
                     if (this.checkWithinClipRegion(line[i], clip)) {
                         path.lineTo(line[i].x, line[i].y);
+                        stroke.push(line[i]);
                         segments++;
                     } else {
                         break;
@@ -188,9 +194,11 @@ class Scribble {
                 }
                 if (segments > 0) {
                     this.paths.push(path);
+                    strokes.push(stroke);
                 }
             }
         }
+        return strokes;
     }
 
     drawLines(clip, cutoff) {
@@ -207,6 +215,36 @@ class Scribble {
         this.context.strokeStyle = 'black';
         clipbox.rect(clip, clip, this.canvas.width - 2 * clip, this.canvas.height - 2 * clip);
         this.context.stroke(clipbox);
+    }
+
+    generateGCode(width, height, clip, cutoff) {
+        let gcode = [
+            'G28',
+            `G0 X${width / 2} Y${height / 2}`,
+            `G0 X${width / 2} Y-${height / 2}`,
+            `G0 X-${width / 2} Y-${height / 2}`,
+            `G0 X-${width / 2} Y${height / 2}`,
+            'G0 X0 Y0',
+        ];
+
+        let strokes = this.buildPaths(clip);
+        for (let s = 0; s < strokes.length - cutoff; s++) {
+            for (let p = 0; p < strokes[s].length; p++) {
+                let x = Math.round((strokes[s][p].x - this.canvas.width / 2) / this.canvas.width * width * 1000) / 1000;
+                let y = Math.round((-1 * strokes[s][p].y + this.canvas.height / 2) / this.canvas.height * height * 1000) / 1000;
+                if (p) {
+                    gcode.push(`G1 X${x} Y${y}`);
+                } else {
+                    gcode.push(`G0 X${x} Y${y}`);
+                }
+            }
+        }
+
+        gcode.push(
+            'G0 X0 Y0'
+        );
+
+        return gcode;
     }
 }
 

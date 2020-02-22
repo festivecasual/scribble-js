@@ -80,7 +80,7 @@ var app = new Vue({
         sendCommands(cmds) {
             axios.post('/api/command', cmds).then(function(){
                 console.log('Sent commands:');
-                console.log(commands);
+                console.log(cmds);
             });
         },
         moveBelts(L, R) {
@@ -89,8 +89,8 @@ var app = new Vue({
         findCenter() {
             this.sendCommands(['G28']);
         },
-        goHome() {
-            this.sendCommands(['G0 X0 Y0']);
+        startPrint() {
+            this.sendCommands(this.scribble.generateGCode(this.width(), this.height(), this.clip, this.cutoff));
         },
     },
     watch: {
