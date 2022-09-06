@@ -48,9 +48,18 @@
             <a class="button is-loading is-primary">Loading...</a>
           </div>
           <div v-if="ready">
-            <p>Cutoff: <input step="1" min="0" :max="maxCutoff" v-model="cutoff" type="range"></p>
-            <p>Clip: <input step="1" min="0" max="20" v-model="clip" type="range"></p>
+            <p>Style:<br>
+              <a v-bind:class="['button', {'is-info': style === 'random'}]" @click.prevent="style = 'random'; dirty = true">Random</a> 
+              <a v-bind:class="['button', {'is-info': style === 'hatched'}]" @click.prevent="style = 'hatched'; dirty = true">Hatched</a>
+            </p>
+            <p>Cutoff ({{ cutoff }}): <input step="1" min="0" :max="maxCutoff" v-model="cutoff" type="range"></p>
+            <p>Clip ({{ clip }}): <input step="1" min="0" max="20" v-model="clip" type="range"></p>
+            <p>Stroke Length ({{ stroke }}): <input step="1" min="2" max="40" v-model="stroke" type="range" @change="dirty = true"></p>
+            <p>Darkness ({{ darkness }}): <input step="1" min="180" max="250" v-model="darkness" type="range" @change="dirty = true"></p>
+            <p v-if="style === 'hatched'">Angle ({{ angle }}): <input step="1" min="20" max="70" v-model="angle" type="range" @change="dirty = true"></p>
+            <p v-if="style === 'hatched'">Density ({{ density }}): <input step="5" min="5" max="30" v-model="density" type="range" @change="dirty = true"></p>
             <p>
+              <a class="button is-warning" @click="redraw()" v-if="dirty"><i class="fa fa-bolt"></i>&nbsp;Redraw</a>
               <a class="button" @click="rotate()"><i class="fas fa-sync-alt"></i>&nbsp;Rotate Image</a>
               <a class="button is-dark" @click="startOver()"><i class="fas fa-step-backward"></i>&nbsp;Start Over</a>
             </p>

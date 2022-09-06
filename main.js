@@ -4,11 +4,17 @@ var app = new Vue({
         clip: 0,
         cutoff: 0,
         maxCutoff: 100,
+        stroke: 20,
+        darkness: 240,
+        angle: 30,
+        density: 15,
         scale: 80,
         scribble: null,
         loading: false,
         control: false,
+        dirty: false,
         status: 'wait',
+        style: 'random',
         completion: 0,
     },
     computed: {
@@ -24,11 +30,18 @@ var app = new Vue({
     },
     methods: {
         async processFile(f) {
+            this.dirty = false;
             this.loading = true;
-            this.scribble = new Scribble(document.getElementById('working-image'));
-            await this.scribble.load(f);
-            await this.scribble.refresh();
-            await this.scribble.process(this.clip, this.cutoff);
+            if (f) {
+                this.scribble = new Scribble(document.getElementById('working-image'));
+                await this.scribble.load(f);
+                await this.scribble.refresh();
+            }
+            if (this.style == 'random') {
+                await this.scribble.process_random(this.clip, this.cutoff, this.stroke, this.darkness);
+            } else if (this.style == 'hatched') {
+                await this.scribble.process_hatched(this.clip, this.cutoff, this.stroke, this.darkness, this.angle, this.density);
+            }
             this.loading = false;
             this.maxCutoff = this.scribble.paths.length;
         },
@@ -41,15 +54,18 @@ var app = new Vue({
         startOver() {
             this.scribble.clear();
             this.scribble = null;
+            this.dirty = false;
         },
         async rotate() {
             this.scribble.rotate();
-            this.loading = true;
             this.clip = 0;
             this.cutoff = 0;
-            await this.scribble.process(this.clip, this.cutoff);
-            this.loading = false;
-            this.maxCutoff = this.scribble.paths.length;
+            await this.processFile();
+        },
+        async redraw() {
+            this.scribble.reset();
+            this.scribble.grayscale();
+            await this.processFile();
         },
         width() {
             let cvs = this.scribble.canvas;

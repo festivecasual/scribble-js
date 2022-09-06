@@ -1,5 +1,11 @@
-// Image processing code heavily adapted from:
+// "Random" image processing method heavily adapted from:
 // https://github.com/Scott-Cooper/Drawbot_image_to_gcode_v2
+
+
+function deg2rad(angle) {
+    angle %= 360;
+    return angle / 180 * Math.PI;
+}
 
 
 class Scribble {
@@ -75,11 +81,11 @@ class Scribble {
         this.reset();
     }
 
-    async process(clip, cutoff, stroke=20) {
+    async process_random(clip, cutoff, stroke, darkness) {
         var start = this.darkestSamplePoint();
         var finish;
 
-        while (this.meanValue() < 240) {
+        while (this.meanValue() < darkness) {
             let line = [start];
             for (let i = 0; i < 100; i++) {
                 let darkest_option = 256;
@@ -105,8 +111,70 @@ class Scribble {
             this.lines.push(line);
 
             await this.refresh();
+
+            start = this.darkestSamplePoint()
+        }
+        this.buildPaths(clip);
+        this.drawLines(clip, cutoff);
+    }
+
+    async process_hatched(clip, cutoff, stroke, darkness, angle, density) {
+        var self = this;
+        function bounceFrom(origin, angle) {
+            let x = bound(origin.x + Math.floor(stroke * Math.cos(deg2rad(angle))), 0, self.canvas.width - 1);
+            let y = bound(origin.y + Math.floor(stroke * Math.sin(deg2rad(angle))), 0, self.canvas.height - 1);
+            let latest = origin;
+
+            for (let pt of origin.bresenhamTo(new Point(x, y))) {
+                if (self.get(pt) == 255) {
+                    break;
+                }
+                self.set(pt, Math.min(255, self.get(pt) + 50));
+                latest = pt;
+            }
+            return latest;
         }
 
+        while (this.meanValue() < darkness) {
+            let start = this.darkestSamplePoint();
+            let line = [start];
+            var current = start;
+
+            for (let i = 0; i < 50; i++) {
+                let pt;
+                if (i > 0) {
+                    this.set(current, this.get(current) - 50);
+                }
+                if (i % 2 == 0) {
+                    pt = bounceFrom(current, angle);
+                } else {
+                    pt = bounceFrom(current, angle + 180 - density);
+                }
+                if (current.x == pt.x && current.y == pt.y) {
+                    break;
+                }
+                line.push(pt);
+                current = pt;
+            }
+            current = start;
+            for (let i = 0; i < 50; i++) {
+                let pt;
+                this.set(current, this.get(current) - 50);
+                if (i % 2 == 0) {
+                    pt = bounceFrom(current, angle - density);
+                } else {
+                    pt = bounceFrom(current, angle + 180);
+                }
+                if (current.x == pt.x && current.y == pt.y) {
+                    break;
+                }
+                line.unshift(pt);
+                current = pt;
+            }
+            this.lines.push(line);
+
+            await this.refresh();
+        }
         this.buildPaths(clip);
         this.drawLines(clip, cutoff);
     }
